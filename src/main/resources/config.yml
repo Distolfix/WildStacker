@@ -184,6 +184,11 @@ items:
   # Should entities get stored into the database?
   store-items: true
 
+  # When enabled, new items that drop will become the main stack, and old items on the ground will merge into them.
+  # This preserves the timestamp of the newest item, preventing auto-collection systems from losing items.
+  # When disabled (default behavior), new items merge into old items on the ground.
+  stack-with-newest: false
+
 # Here you can configurable all features related to stacked entities.
 entities:
   # Should entities get stacked on the server?

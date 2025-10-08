@@ -84,7 +84,8 @@ public final class SettingsHandler {
 
     //Items settings
     public final boolean itemsStackingEnabled, itemsParticlesEnabled, itemsFixStackEnabled, itemsDisplayEnabled,
-            itemsUnstackedCustomName, itemsNamesToggleEnabled, itemsSoundEnabled, itemsMaxPickupDelay, storeItems;
+            itemsUnstackedCustomName, itemsNamesToggleEnabled, itemsSoundEnabled, itemsMaxPickupDelay, storeItems,
+            itemsStackWithNewest;
     public final List<String> itemsDisabledWorlds;
     public final FastEnumArray<Material> blacklistedItems, whitelistedItems;
     public final int itemsChunkLimit;
@@ -240,6 +241,7 @@ public final class SettingsHandler {
         itemsMaxPickupDelay = cfg.getBoolean("items.max-pickup-delay", false);
         itemsStackInterval = cfg.getLong("items.stack-interval", 0L);
         storeItems = cfg.getBoolean("items.store-items", true);
+        itemsStackWithNewest = cfg.getBoolean("items.stack-with-newest", false);
 
         entitiesStackingEnabled = cfg.getBoolean("entities.enabled", true);
         entitiesMergeRadius = Fast2EnumsMap.fromSectionToInt(cfg.getConfigurationSection("entities.merge-radius"),

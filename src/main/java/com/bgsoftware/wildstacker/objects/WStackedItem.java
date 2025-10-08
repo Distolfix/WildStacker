@@ -216,6 +216,16 @@ public final class WStackedItem extends WAsyncStackedObject<Item> implements Sta
         if (((WStackedItem) targetItem).isRemoved() || targetItem.getItem().isDead())
             return StackCheckResult.TARGET_ALREADY_DEAD;
 
+        // If stack-with-newest is enabled, only allow newer items to stack into older ones
+        if (plugin.getSettings().itemsStackWithNewest) {
+            // this = the item trying to stack, targetItem = the item being stacked into
+            // We want: newer (lower ticksLived) should stack into older (higher ticksLived)
+            if (this.getItem().getTicksLived() >= targetItem.getItem().getTicksLived()) {
+                // this is older or same age as target, reject this stack attempt
+                return StackCheckResult.NOT_SIMILAR;
+            }
+        }
+
         return StackCheckResult.SUCCESS;
     }
 
@@ -232,14 +242,28 @@ public final class WStackedItem extends WAsyncStackedObject<Item> implements Sta
         if (!EventsCaller.callItemStackEvent(targetItem, this))
             return StackResult.EVENT_CANCELLED;
 
-        targetItem.increaseStackAmount(getStackAmount(), false);
+        // If stack-with-newest is enabled, the new item (this) becomes the main stack
+        // and the old item (targetItem) merges into it, preserving the newest timestamp
+        if (plugin.getSettings().itemsStackWithNewest) {
+            this.increaseStackAmount(targetItem.getStackAmount(), false);
 
-        Executor.sync(() -> {
-            if (targetItem.getItem().isValid())
-                targetItem.updateName();
-        }, 2L);
+            targetItem.remove();
 
-        this.remove();
+            Executor.sync(() -> {
+                if (this.getItem().isValid())
+                    this.updateName();
+            }, 2L);
+        } else {
+            // Default behavior: new item merges into old item
+            targetItem.increaseStackAmount(getStackAmount(), false);
+
+            this.remove();
+
+            Executor.sync(() -> {
+                if (targetItem.getItem().isValid())
+                    targetItem.updateName();
+            }, 2L);
+        }
 
         spawnStackParticle(true);
 
@@ -393,6 +417,15 @@ public final class WStackedItem extends WAsyncStackedObject<Item> implements Sta
         Optional<StackedItem> itemOptional = EntitiesGetter.getNearbyEntities(itemLocation, range, ItemUtils::isStackable)
                 .map(entity -> WStackedItem.ofBypass((Item) entity))
                 .filter(stackedItem -> runStackCheck(stackedItem) == StackCheckResult.SUCCESS)
+                .sorted((item1, item2) -> {
+                    // If stack-with-newest is enabled, prioritize older items (higher ticksLived)
+                    // so the newer item (this) will merge into the older one found here
+                    if (plugin.getSettings().itemsStackWithNewest) {
+                        return Integer.compare(item2.getItem().getTicksLived(), item1.getItem().getTicksLived());
+                    }
+                    // Default: prioritize newer items (lower ticksLived)
+                    return Integer.compare(item1.getItem().getTicksLived(), item2.getItem().getTicksLived());
+                })
                 .findFirst();
 
         if (itemOptional.isPresent()) {
