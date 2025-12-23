@@ -1,5 +1,5 @@
 <p align="center">
-<img src="https://bg-software.com/imgs/wildstacker-logo.png" />
+<img src="https://static.bg-software.com/imgs/wildstacker-logo.png" />
 <h2 align="center">The first ever multi-threaded stacking solution!</h2>
 </p>
 <br>
@@ -56,3 +56,5 @@ for bug fixes.
 ## License
 
 This plugin is licensed under GNU GPL v3.0
+
+This plugin uses HikariCP which you can find [here](https://github.com/brettwooldridge/HikariCP).
